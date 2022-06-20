@@ -1,0 +1,1 @@
+export const baseURL = 'https://api.airdna.co/v1/market/';

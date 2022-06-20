@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel index.html --open",
-    "postbuild": "cp -r api/* dist"
+    "build": "parcel build index.html"
   },
   "keywords": [],
   "author": "",
