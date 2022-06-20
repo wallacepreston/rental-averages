@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 // needed for compilation when using async/await without certain babel settings
 import 'regenerator-runtime/runtime';
 
-import { Table, Layout, Content } from 'antd';
+import { Table, Layout } from 'antd';
+const { Header, Footer, Content } = Layout;
+
 
 import 'antd/dist/antd.css';
 
@@ -205,17 +207,29 @@ export function App() {
   }, [accessToken, cityId, bedrooms]);
 
     return <>
-        {
-          !accessToken && <AccessTokenForm accessToken={accessToken} setAccessToken={setAccessToken} confirmValidToken={confirmValidToken} />
-          
-        }
-      <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
+
       {
-        cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''
+        !accessToken && <AccessTokenForm accessToken={accessToken} setAccessToken={setAccessToken} confirmValidToken={confirmValidToken} />
+        
       }
-      <h2>Results for {cityName}</h2>
-      {
-        percentiles?.adr && <Table dataSource={dataSource} columns={columns} />
-      }
+      <Layout className="layout" style={{ height: '100vh' }}>
+        <Header>
+          Rental Averages
+        </Header>
+        <Content style={{ padding: '50px'}}>
+          <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
+          {
+            cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''
+          }
+          <h2>Results for {cityName}</h2>
+          {
+            percentiles?.adr && <Table dataSource={dataSource} columns={columns} />
+          }
+        </Content>
+        <Footer>
+          &copy; Preston Wallace {new Date().getFullYear()} <a href="prestonwallace.com">prestonwallace.com</a>
+        </Footer>
+      </Layout>
+        
     </>
 }
