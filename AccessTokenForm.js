@@ -11,6 +11,7 @@ export const AccessTokenForm = ({setAccessToken}) => {
     setAccessToken(accessTokenInput);
   }
   
+  // TODO - make a login modal with Auth0 to connect AirDNA data
   return <>
     <h2>Set your Access Token</h2>
     <form onSubmit={handleSubmit}>
