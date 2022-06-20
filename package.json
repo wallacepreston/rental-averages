@@ -1,16 +1,22 @@
 {
-  "name": "",
+  "name": "rental-averages",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": ""
+    "start": "parcel index.html --open",
+    "postbuild": "cp -r api/* dist"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "7.16.11",
+    "@babel/preset-react": "7.16.7",
+    "parcel-bundler": "^1.12.5"
+  }
 }
