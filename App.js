@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import 'regenerator-runtime/runtime';
 import { AccessTokenForm } from './AccessTokenForm';
 import { PropertyLookup } from './PropertyLookup';
+import { RequestedDataForm } from './RequestedDataForm';
 
+const NUM_BEDROOMS = 4;
 // TODO - make this a user input on form
 const YEARS_OF_DATA = 3
-const NUM_BEDROOMS = 4;
 
 export function App() {
 
@@ -29,6 +30,8 @@ export function App() {
   const [categories, setCategories] = useState({});
   const [accessToken, setAccessToken] = useState('');
   const [cityId, setCityId] = useState(0);
+  const [bedrooms, setBedrooms] = useState(NUM_BEDROOMS);
+  const [accommodates, setAccommodates] = useState(10);
 
   // process array of monthly data for single data point
   const getAverages = ({data}) => {
@@ -77,15 +80,19 @@ export function App() {
   const startYear = startDate.getFullYear();
   const numberOfMonths = YEARS_OF_DATA * 12;
 
-  const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10&bedrooms=${NUM_BEDROOMS}`;
+  const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10&bedrooms=${bedrooms}`;
+  
 
   const getDataPoints = async () => {
     // fetch all data points
     const responses = await Promise.all(requestedDataPoints.map(async ({urlName, dataName}) => {
-      const response = await fetch(getURL(urlName));
+      const urlToFetch = getURL(urlName);
+      
+      const response = await fetch(urlToFetch);
       const {data} = await response.json();
       const resourceData = data[dataName];
-      return resourceData.calendar_months.map(month => month.room_type.entire_place.bedrooms[NUM_BEDROOMS]);
+      
+      return resourceData.calendar_months.map(month => month.room_type.entire_place.bedrooms[bedrooms]);
     }));
 
     // process data
@@ -112,7 +119,6 @@ export function App() {
   
 
   useEffect(() => {
-    // todo - make this a user input on form, saved to localStorage
     const tokenFromStorage = localStorage.getItem('accessToken');
     if(tokenFromStorage) {
       setAccessToken(tokenFromStorage);
@@ -121,13 +127,16 @@ export function App() {
 
   useEffect(() => {
     accessToken && cityId && getDataPoints();
-  }, [accessToken, cityId]);
+  }, [accessToken, cityId, bedrooms]);
 
     return <>
       {
         !accessToken && <AccessTokenForm setAccessToken={setAccessToken} />
       }
       <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} />
+      {
+        cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''
+      }
         {
           Object.keys(percentiles).map((key, idx) => <div key={idx}>
             <h2>{key}</h2>
