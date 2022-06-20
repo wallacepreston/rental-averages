@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 // needed for compilation when using async/await without certain babel settings
 import 'regenerator-runtime/runtime';
 
-import { Table } from 'antd';
+import { Table, Layout, Content } from 'antd';
 
 import 'antd/dist/antd.css';
 
+import { baseURL } from './util';
 import { AccessTokenForm } from './AccessTokenForm';
 import { PropertyLookup } from './PropertyLookup';
 import { RequestedDataForm } from './RequestedDataForm';
@@ -89,6 +90,12 @@ export function App() {
 
   const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10&bedrooms=${bedrooms}`;
   
+  // make a superfluous api call to confirm that this works before setting the token.
+  const confirmValidToken = async token => {
+    const getURL = `${baseURL}search?access_token=${token}&term=manhattan`;
+    const response = await fetch(getURL);
+    return await response.json();
+  }
 
   const getDataPoints = async () => {
     // fetch all data points
@@ -123,7 +130,6 @@ export function App() {
       <b>{key}<sup>th</sup>: </b>{ rounded }
     </div>
   });
-
 
   const dataSource = percentiles?.adr && [
     {
@@ -179,12 +185,19 @@ export function App() {
     },
   ];
   
-
   useEffect(() => {
-    const tokenFromStorage = localStorage.getItem('accessToken');
-    if(tokenFromStorage) {
-      setAccessToken(tokenFromStorage);
+    const autoLogin = async () => {
+      const tokenFromStorage = localStorage.getItem('accessToken');
+      if(tokenFromStorage) {
+        const data = await confirmValidToken(tokenFromStorage);
+        if(data?.num_items) {
+          setAccessToken(tokenFromStorage);
+        } else {
+          localStorage.removeItem('accessToken');
+        }
+      }
     }
+    autoLogin();
   }, []);
 
   useEffect(() => {
@@ -192,9 +205,10 @@ export function App() {
   }, [accessToken, cityId, bedrooms]);
 
     return <>
-      {
-        !accessToken && <AccessTokenForm setAccessToken={setAccessToken} />
-      }
+        {
+          !accessToken && <AccessTokenForm accessToken={accessToken} setAccessToken={setAccessToken} confirmValidToken={confirmValidToken} />
+          
+        }
       <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
       {
         cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''

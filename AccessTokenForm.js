@@ -1,25 +1,40 @@
 import React, { useState } from 'react';
 import { baseURL } from './util';
 
-export const AccessTokenForm = ({setAccessToken}) => {
-  const [accessTokenInput, setAccessTokenInput] = useState('');
+import { Modal, Input, Alert } from 'antd';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // TODO - make an api call to confirm that this works before setting the token.
-    localStorage.setItem('accessToken', accessTokenInput);
-    setAccessToken(accessTokenInput);
+export const AccessTokenForm = ({setAccessToken, confirmValidToken}) => {
+  const [accessTokenInput, setAccessTokenInput] = useState('');
+  const [error, setError] = useState('');
+
+  const handleOk = async () => {
+    const data = await confirmValidToken(accessTokenInput);
+    if(data?.num_items) {
+      localStorage.setItem('accessToken', accessTokenInput);
+      setAccessToken(accessTokenInput);
+    } else {
+      setError('Invalid access token');
+    }
   }
   
   // TODO - make a login modal with Auth0 to connect AirDNA data
   return <>
     <h2>Set your Access Token</h2>
-    <form onSubmit={handleSubmit}>
-      <label>
-        Access Token:
-        <input type="text" value={accessTokenInput} onChange={(e) => setAccessTokenInput(e.target.value)} />
-      </label>
-      <input type="submit" value="Submit" />
+    <form onSubmit={(e) => e.preventDefault()}>
+      <Modal
+        title="Authenticate"
+        visible={true}
+        onOk={handleOk}
+        cancelButtonProps={{ style: { display: 'none' } }}
+        closable={false}
+      >
+        <label>
+          {error && <Alert message={error} type="error" />}
+          This tool is only available with a paid AirDNA account.  Get your access token by <a href="https://www.airdna.co/vacation-rental-data/app/login" target="_blank">visiting airDNA</a> and opening the network tab to retrieve your token from the response for '<code>refresh</code>'. Then please enter your access token below.
+          <br/>
+          <Input style={{width: '75%'}} type="text" value={accessTokenInput} placeholder="paste access token here" onChange={(e) => setAccessTokenInput(e.target.value)} />
+        </label>
+      </Modal>
     </form>
   </>
   
