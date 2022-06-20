@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 // needed for compilation when using async/await without certain babel settings
 import 'regenerator-runtime/runtime';
+
+import { Table } from 'antd';
+
+import 'antd/dist/antd.css';
+
 import { AccessTokenForm } from './AccessTokenForm';
 import { PropertyLookup } from './PropertyLookup';
 import { RequestedDataForm } from './RequestedDataForm';
@@ -30,6 +35,8 @@ export function App() {
   const [categories, setCategories] = useState({});
   const [accessToken, setAccessToken] = useState('');
   const [cityId, setCityId] = useState(0);
+  const [cityName, setCityName] = useState('');
+  
   const [bedrooms, setBedrooms] = useState(NUM_BEDROOMS);
   const [accommodates, setAccommodates] = useState(10);
 
@@ -116,6 +123,61 @@ export function App() {
       <b>{key}<sup>th</sup>: </b>{ rounded }
     </div>
   });
+
+
+  const dataSource = percentiles?.adr && [
+    {
+      key: '1',
+      occupancy: (percentiles.occupancy['25'] * 100).toFixed(2),
+      adr: percentiles.adr['25'].toFixed(2),
+      grossRent: percentiles.grossRent['25'].toFixed(2),
+      percentile: '25th',
+    },
+    {
+      key: '2',
+      occupancy: (percentiles.occupancy['50'] * 100).toFixed(2),
+      adr: percentiles.adr['50'].toFixed(2),
+      grossRent: percentiles.grossRent['50'].toFixed(2),
+      percentile: '50th',
+    },
+    {
+      key: '3',
+      occupancy: (percentiles.occupancy['75'] * 100).toFixed(2),
+      adr: percentiles.adr['75'].toFixed(2),
+      grossRent: percentiles.grossRent['75'].toFixed(2),
+      percentile: '75th',
+    },
+    {
+      key: '4',
+      occupancy: (percentiles.occupancy['90'] * 100).toFixed(2),
+      adr: percentiles.adr['90'].toFixed(2),
+      grossRent: percentiles.grossRent['90'].toFixed(2),
+      percentile: '90th',
+    },
+  ];
+  
+  const columns = [
+    {
+      title: `${bedrooms} Bed, Sleeps ${accommodates}`,
+      dataIndex: 'percentile',
+      key: 'percentile',
+    },
+    {
+      title: 'Average OCC',
+      dataIndex: 'occupancy',
+      key: 'occupancy',
+    },
+    {
+      title: 'Average Rate',
+      dataIndex: 'adr',
+      key: 'adr',
+    },
+    {
+      title: 'Projected Gross Revenue',
+      dataIndex: 'grossRent',
+      key: 'grossRent',
+    },
+  ];
   
 
   useEffect(() => {
@@ -133,18 +195,13 @@ export function App() {
       {
         !accessToken && <AccessTokenForm setAccessToken={setAccessToken} />
       }
-      <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} />
+      <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
       {
         cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''
       }
-        {
-          Object.keys(percentiles).map((key, idx) => <div key={idx}>
-            <h2>{key}</h2>
-            <div>{displayAmts({
-              percentiles: percentiles[key],
-              type: key
-            })}</div>
-          </div>)
-        }
+      <h2>Results for {cityName}</h2>
+      {
+        percentiles?.adr && <Table dataSource={dataSource} columns={columns} />
+      }
     </>
 }

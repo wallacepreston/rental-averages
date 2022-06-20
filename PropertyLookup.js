@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { baseURL } from './util';
 
-export const PropertyLookup = ({setCityId, accessToken}) => {
+export const PropertyLookup = ({setCityId, accessToken, cityName, setCityName}) => {
   const [city, setCity] = useState('');
-  const [cityName, setCityName] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
