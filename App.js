@@ -13,9 +13,11 @@ import { AccessTokenForm } from './AccessTokenForm';
 import { PropertyLookup } from './PropertyLookup';
 import { RequestedDataForm } from './RequestedDataForm';
 
-const NUM_BEDROOMS = 4;
+const DEFAULT_BEDROOMS = '4';
+const DEFAULT_ACCOMMODATES = '10';
 // TODO - make this a user input on form
 const YEARS_OF_DATA = 3
+const CITY_ID = 59076;
 
 export function App() {
 
@@ -40,8 +42,8 @@ export function App() {
   const [cityId, setCityId] = useState(0);
   const [cityName, setCityName] = useState('');
   
-  const [bedrooms, setBedrooms] = useState(NUM_BEDROOMS);
-  const [accommodates, setAccommodates] = useState(10);
+  const [bedrooms, setBedrooms] = useState(DEFAULT_BEDROOMS);
+  const [accommodates, setAccommodates] = useState(DEFAULT_ACCOMMODATES);
 
   // process array of monthly data for single data point
   const getAverages = ({data}) => {
@@ -90,7 +92,10 @@ export function App() {
   const startYear = startDate.getFullYear();
   const numberOfMonths = YEARS_OF_DATA * 12;
 
-  const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10&bedrooms=${bedrooms}`;
+  // build request url
+  const bedroomsList = '&bedrooms=' + bedrooms.split(',').map(bedrooms => bedrooms.trim()).join('&bedrooms=');
+  const accommodatesList = '&accommodates=' + accommodates.split(',').map(accommodates => accommodates.trim()).join('&accommodates=');
+  const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10${bedroomsList}`;
   
   // make a superfluous api call to confirm that this works before setting the token.
   const confirmValidToken = async token => {
@@ -100,25 +105,29 @@ export function App() {
   }
 
   const getDataPoints = async () => {
-    // fetch all data points
-    const responses = await Promise.all(requestedDataPoints.map(async ({urlName, dataName}) => {
-      const urlToFetch = getURL(urlName);
-      
-      const response = await fetch(urlToFetch);
-      const {data} = await response.json();
-      const resourceData = data[dataName];
-      
-      return resourceData.calendar_months.map(month => month.room_type.entire_place.bedrooms[bedrooms]);
-    }));
+    try {
+      // fetch all data points
+      const responses = await Promise.all(requestedDataPoints.map(async ({urlName, dataName}) => {
+        const urlToFetch = getURL(urlName);
+        
+        const response = await fetch(urlToFetch);
+        const {data} = await response.json();
+        const resourceData = data[dataName];
+        
+        return resourceData.calendar_months.map(month => month.room_type.entire_place.bedrooms.all);
+      }));
 
-    // process data
-    const dataInObject = responses.reduce((acc, curr, idx) => {
-      const key = requestedDataPoints[idx].dataName;
-      acc[key] = curr;
-      return acc;
-    }, {});
-
-    setCategories(dataInObject);
+      // process data
+      const dataInObject = responses.reduce((acc, curr, idx) => {
+        const key = requestedDataPoints[idx].dataName;
+        acc[key] = curr;
+        return acc;
+      }, {});
+  
+      setCategories(dataInObject);
+    } catch (error) {
+      console.error(error);
+    }
   }
   
   // transform averages into jsx
