@@ -236,7 +236,7 @@ export function App() {
           }
         </Content>
         <Footer>
-          &copy; Preston Wallace {new Date().getFullYear()} <a href="prestonwallace.com">prestonwallace.com</a>
+          &copy; Preston Wallace {new Date().getFullYear()} <a href="https://prestonwallace.com">prestonwallace.com</a>
         </Footer>
       </Layout>
         
