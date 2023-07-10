@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import 'regenerator-runtime/runtime';
 
 import { Table, Layout } from 'antd';
-const { Header, Footer, Content } = Layout;
 
 
 import 'antd/dist/antd.css';
@@ -12,6 +11,7 @@ import { baseURL } from './util';
 import { AccessTokenForm } from './AccessTokenForm';
 import { PropertyLookup } from './PropertyLookup';
 import { RequestedDataForm } from './RequestedDataForm';
+const { Header, Footer, Content } = Layout;
 
 const DEFAULT_BEDROOMS = '4';
 const DEFAULT_ACCOMMODATES = '10';
