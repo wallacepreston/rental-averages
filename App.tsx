@@ -19,6 +19,17 @@ const DEFAULT_ACCOMMODATES = '10';
 const YEARS_OF_DATA = 3
 const CITY_ID = 59076;
 
+interface GrossRent {
+  [key: string]: number;
+}
+
+interface Percentiles {
+  adr?: number;
+  occupancy?: number;
+  revenue?: number;
+  grossRent?: GrossRent;
+}
+
 export function App() {
 
   // TODO - make this a user input on form
@@ -67,7 +78,7 @@ export function App() {
   }
 
   // computed value from state
-  const percentiles = Object.entries(categories)
+  const percentiles: Percentiles = Object.entries(categories)
     .reduce((acc,[key, value]) => {
       const averages = getAverages({ data: categories[key] })
       return {
