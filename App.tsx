@@ -17,7 +17,6 @@ const DEFAULT_BEDROOMS = '4';
 const DEFAULT_ACCOMMODATES = '10';
 // TODO - make this a user input on form
 const YEARS_OF_DATA = 3
-const CITY_ID = 59076;
 
 interface GrossRent {
   [key: string]: number;
@@ -32,6 +31,7 @@ interface Percentiles {
 
 export function App() {
 
+  // 1 - define the data points we want to fetch
   // TODO - make this a user input on form
   const requestedDataPoints = [
     {
@@ -77,7 +77,7 @@ export function App() {
     return averageAmts;
   }
 
-  // computed value from state
+  // 4 - compute adr and occupancy values from state
   const percentiles: Percentiles = Object.entries(categories)
     .reduce((acc,[key, value]) => {
       const averages = getAverages({ data: categories[key] })
@@ -87,6 +87,7 @@ export function App() {
       }
     }, {});
   if (percentiles.adr && percentiles.occupancy) {
+    // 5 - calculate gross rent from adr and occupancy
     percentiles.grossRent = {
       '25': percentiles.adr['25'] * percentiles.occupancy['25'] * 30 * 12,
       '50': percentiles.adr['50'] * percentiles.occupancy['50'] * 30 * 12,
@@ -105,10 +106,9 @@ export function App() {
 
   // build request url
   const bedroomsList = '&bedrooms=' + bedrooms.split(',').map(bedrooms => bedrooms.trim()).join('&bedrooms=');
-  const accommodatesList = '&accommodates=' + accommodates.split(',').map(accommodates => accommodates.trim()).join('&accommodates=');
   const getURL = dataPointName => `https://api.airdna.co/v1/market/${dataPointName}/monthly?access_token=${accessToken}&start_month=${startMonth}&start_year=${startYear}&number_of_months=${numberOfMonths}&city_id=${cityId}&room_types=entire_place&accommodates=10${bedroomsList}`;
   
-  // make a superfluous api call to confirm that this works before setting the token.
+  // UTIL: makes a superfluous api call to confirm that this works before setting the token.
   const confirmValidToken = async token => {
     const getURL = `${baseURL}search?access_token=${token}&term=manhattan`;
     const response = await fetch(getURL);
@@ -117,7 +117,7 @@ export function App() {
 
   const getDataPoints = async () => {
     try {
-      // fetch all data points
+      // 2 - fetch all data points
       const responses = await Promise.all(requestedDataPoints.map(async ({urlName, dataName}) => {
         const urlToFetch = getURL(urlName);
         
@@ -128,7 +128,7 @@ export function App() {
         return resourceData.calendar_months.map(month => month.room_type.entire_place.bedrooms.all);
       }));
 
-      // process data
+      // 3 - process data & set on state
       const dataInObject = responses.reduce((acc, curr, idx) => {
         const key = requestedDataPoints[idx].dataName;
         acc[key] = curr;
@@ -153,6 +153,7 @@ export function App() {
     </div>
   });
 
+  // 6 - compile data for table
   const dataSource = percentiles?.adr && [
     {
       key: '1',
@@ -184,6 +185,7 @@ export function App() {
     },
   ];
   
+  // 7 - define column headers for table: which keys to access
   const columns = [
     {
       title: `${bedrooms} Bed, Sleeps ${accommodates}`,
@@ -207,6 +209,7 @@ export function App() {
     },
   ];
   
+  // check if we have a token in local storage, and if it's still valid (by making a superfluous api call)
   useEffect(() => {
     const autoLogin = async () => {
       const tokenFromStorage = localStorage.getItem('accessToken');
@@ -222,6 +225,7 @@ export function App() {
     autoLogin();
   }, []);
 
+  // if any requested data changes, fetch the new data
   useEffect(() => {
     accessToken && cityId && getDataPoints();
   }, [accessToken, cityId, bedrooms]);
@@ -229,7 +233,7 @@ export function App() {
     return <>
 
       {
-        !accessToken && <AccessTokenForm accessToken={accessToken} setAccessToken={setAccessToken} confirmValidToken={confirmValidToken} />
+        !accessToken && <AccessTokenForm setAccessToken={setAccessToken} confirmValidToken={confirmValidToken} />
         
       }
       <Layout className="layout" style={{ height: '100vh' }}>
@@ -237,7 +241,7 @@ export function App() {
           Rental Averages
         </Header>
         <Content style={{ padding: '50px'}}>
-          <PropertyLookup accessToken={accessToken} cityId={cityId} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
+          <PropertyLookup accessToken={accessToken} setCityId={setCityId} cityName={cityName} setCityName={setCityName} />
           {
             cityId ? <RequestedDataForm bedrooms={bedrooms} setBedrooms={setBedrooms} accommodates={accommodates} setAccommodates={setAccommodates} /> : ''
           }

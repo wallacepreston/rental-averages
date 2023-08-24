@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { baseURL } from './util';
 
 import { Modal, Input, Alert } from 'antd';
 
